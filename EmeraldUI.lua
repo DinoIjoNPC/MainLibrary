@@ -45,58 +45,55 @@ do
     
     -- Estimasi DPI berdasarkan tinggi layar fisik
     -- HP biasanya 5-7 inch, tablet 8-12 inch, PC 21-27 inch
-    -- Roblox tidak expose inch, jadi kita pakai heuristic:
-    -- HP high-DPI:   layar kecil tapi resolusi tinggi → ratio W/H mendekati 9:16 + resolusi tinggi
-    -- PC:            resolusi besar, aspect ratio landscape lebar
-    local aspectRatio = screenW / screenH
     local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
     local isTablet = UserInputService.TouchEnabled and (screenH > 900 or screenW > 900)
 
-    -- Base scale reference: desain dibuat untuk 1080x600 (PC sedang)
-    local BASE_H = 600
-    local BASE_W = 1080
+    -- Roblox viewport HP biasanya 380-700px (bukan resolusi fisik)
+    -- Jadi BASE_H disesuaikan per perangkat agar GUI proporsional
+    local BASE_H, BASE_W
+    if isMobile and not isTablet then
+        BASE_H = 380
+        BASE_W = 680
+    elseif isTablet then
+        BASE_H = 500
+        BASE_W = 900
+    else
+        BASE_H = 600
+        BASE_W = 1080
+    end
 
-    -- Hitung raw scale dari resolusi
     local rawScaleH = screenH / BASE_H
     local rawScaleW = screenW / BASE_W
     local rawScale  = math.min(rawScaleH, rawScaleW)
 
-    -- DPI correction factor
     local dpiCorrection
     if isMobile and not isTablet then
-        -- HP: DPI tinggi (400-600) → perkecil supaya tidak memenuhi layar
-        if screenH >= 2400 then
-            dpiCorrection = 0.52  -- HP flagship sangat tinggi res
-        elseif screenH >= 1920 then
-            dpiCorrection = 0.58  -- HP high-end
-        elseif screenH >= 1280 then
-            dpiCorrection = 0.65  -- HP mid-range
+        if screenH >= 700 then
+            dpiCorrection = 0.80
+        elseif screenH >= 550 then
+            dpiCorrection = 0.88
+        elseif screenH >= 400 then
+            dpiCorrection = 0.95
         else
-            dpiCorrection = 0.72  -- HP resolusi rendah
+            dpiCorrection = 1.00
         end
     elseif isTablet then
-        -- Tablet: DPI sedang (200-300) → ukuran normal-sedikit diperkecil
-        if screenH >= 2048 then
-            dpiCorrection = 0.75
+        if screenH >= 800 then
+            dpiCorrection = 0.85
         else
-            dpiCorrection = 0.82
+            dpiCorrection = 0.92
         end
     else
-        -- PC/Desktop: DPI rendah (72-120) → perbesar sedikit
         if screenH >= 2160 then
-            dpiCorrection = 0.90  -- 4K monitor
+            dpiCorrection = 0.90
         elseif screenH >= 1440 then
-            dpiCorrection = 0.95  -- QHD
+            dpiCorrection = 0.95
         else
-            dpiCorrection = 1.00  -- FHD dan ke bawah, ukuran penuh
+            dpiCorrection = 1.00
         end
     end
 
-    -- Final scale: smooth clamp supaya tidak terlalu kecil/besar
-    local finalScale = math.clamp(rawScale * dpiCorrection, 0.45, 1.35)
-
-    -- Smooth lerp untuk menghindari lompatan drastis
-    -- (finalScale sudah smooth karena math.clamp, tapi kita round ke 0.05)
+    local finalScale = math.clamp(rawScale * dpiCorrection, 0.55, 1.40)
     finalScale = math.floor(finalScale / 0.05 + 0.5) * 0.05
 
     DPI.scale = finalScale
@@ -125,13 +122,11 @@ do
         return math.max(8, math.round(size * self.scale))
     end
 
-    -- Update jika window di-resize (PC)
     camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
         local newVP = camera.ViewportSize
-        -- Recalculate untuk PC resize (mobile tidak resize)
         if not isMobile and not isTablet then
-            local newRawScale = math.min(newVP.Y / BASE_H, newVP.X / BASE_W)
-            local newFinal = math.clamp(newRawScale, 0.45, 1.35)
+            local newRawScale = math.min(newVP.Y / 600, newVP.X / 1080)
+            local newFinal = math.clamp(newRawScale, 0.55, 1.40)
             DPI.scale = math.floor(newFinal / 0.05 + 0.5) * 0.05
             DPI.screenW = newVP.X
             DPI.screenH = newVP.Y
