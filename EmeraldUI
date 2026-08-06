@@ -1,4 +1,25 @@
+--[[
+    H4dinooo UI Library
+    Based on Speed Hub X V5.0
+    Modified by: Dino / Doz Y / Violence District
+    
+    Features:
+    - Adaptive DPI Scaling (HP, Tablet, PC konsisten)
+    - Hijau-Putih Gradient Theme
+    - Full white text
+    - Professional & clean
+    
+    Usage:
+        local Library = loadstring(game:HttpGet("YOUR_URL"))()
+        local Window = Library:CreateWindow({
+            Title = "H4dinooo",
+            Description = "Game Name",
+        })
+]]
 
+-- ============================================================
+--  SERVICES
+-- ============================================================
 local Players         = game:GetService("Players")
 local Player          = Players.LocalPlayer
 local RunService      = game:GetService("RunService")
@@ -6,6 +27,9 @@ local TweenService    = game:GetService("TweenService")
 local UserInputService= game:GetService("UserInputService")
 local VirtualUser     = game:GetService("VirtualUser")
 
+-- ============================================================
+--  ADAPTIVE DPI SCALING SYSTEM
+-- ============================================================
 local DPI = {}
 
 do
@@ -115,22 +139,30 @@ do
     end)
 end
 
+-- ============================================================
+--  THEME : HIJAU - PUTIH GRADIENT
+-- ============================================================
 local Theme = {}
 
+-- Warna utama (dipakai untuk accent, active state, highlight)
 Theme.AccentGreen    = Color3.fromRGB(0, 200, 100)
 Theme.AccentWhite    = Color3.fromRGB(255, 255, 255)
 
+-- Background
 Theme.BG             = Color3.fromRGB(13, 13, 13)      -- hampir hitam
 Theme.BGSecondary    = Color3.fromRGB(20, 20, 20)
 Theme.BGItem         = Color3.fromRGB(30, 30, 30)
 
+-- Text
 Theme.TextPrimary    = Color3.fromRGB(255, 255, 255)
 Theme.TextSecondary  = Color3.fromRGB(180, 180, 180)
 Theme.TextDim        = Color3.fromRGB(120, 120, 120)
 
+-- Stroke / Border
 Theme.Stroke         = Color3.fromRGB(50, 50, 50)
 Theme.StrokeActive   = Theme.AccentGreen
 
+-- Helper: gradient hijau ke putih (untuk UIGradient)
 function Theme.GreenWhiteGradient()
     return ColorSequence.new({
         ColorSequenceKeypoint.new(0,   Theme.AccentGreen),
@@ -139,6 +171,7 @@ function Theme.GreenWhiteGradient()
     })
 end
 
+-- Helper: gradient hijau ke hitam (untuk divider/line)
 function Theme.GreenBlackGradient()
     return ColorSequence.new({
         ColorSequenceKeypoint.new(0,   Color3.fromRGB(13, 13, 13)),
@@ -147,14 +180,17 @@ function Theme.GreenBlackGradient()
     })
 end
 
+-- ============================================================
+--  CUSTOM INSTANCE CREATOR
+-- ============================================================
 local Custom = {}
 
 function Custom:Create(name, props, parent)
     local inst = Instance.new(name)
+    if parent then inst.Parent = parent end
     for k, v in pairs(props) do
         inst[k] = v
     end
-    if parent then inst.Parent = parent end
     return inst
 end
 
@@ -168,6 +204,9 @@ end
 
 Custom:EnabledAFK()
 
+-- ============================================================
+--  RIPPLE CLICK EFFECT
+-- ============================================================
 local function CircleClick(button, x, y)
     task.spawn(function()
         button.ClipsDescendants = true
@@ -201,6 +240,9 @@ local function CircleClick(button, x, y)
     end)
 end
 
+-- ============================================================
+--  OPEN/CLOSE TOGGLE BUTTON (minimize icon)
+-- ============================================================
 local function MakeOpenCloseButton()
     local sg = Custom:Create("ScreenGui", {
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
@@ -248,6 +290,9 @@ end
 
 local OpenCloseBtn = MakeOpenCloseButton()
 
+-- ============================================================
+--  MAKE DRAGGABLE (untuk main window)
+-- ============================================================
 local function MakeDraggable(topbar, frame)
     local dragging, dragStart, startPos = false, nil, nil
     topbar.InputBegan:Connect(function(inp)
@@ -271,10 +316,16 @@ local function MakeDraggable(topbar, frame)
     end)
 end
 
+-- ============================================================
+--  LIBRARY MAIN TABLE
+-- ============================================================
 local H4Library = {}
 local Notification = {}
 H4Library.Unloaded = false
 
+-- ============================================================
+--  NOTIFICATION SYSTEM
+-- ============================================================
 function H4Library:SetNotification(cfg)
     local Title       = cfg[1] or cfg.Title or ""
     local Description = cfg[2] or cfg.Description or ""
@@ -420,6 +471,9 @@ function H4Library:SetNotification(cfg)
     return Notification
 end
 
+-- ============================================================
+--  CREATE WINDOW
+-- ============================================================
 function H4Library:CreateWindow(cfg)
     -- Window size adaptive: base 550x315, scale dengan DPI
     local baseW  = cfg[4] and cfg[4].X.Offset or 550
@@ -449,13 +503,11 @@ function H4Library:CreateWindow(cfg)
     local shadowHolder = Custom:Create("Frame", {
         BackgroundTransparency = 1,
         BorderSizePixel        = 0,
+        AnchorPoint            = Vector2.new(0.5, 0.5),
         Size                   = UDim2.fromOffset(scaledW + DPI:S(50), scaledH + DPI:S(50)),
-        ZIndex                 = 0,
+        ZIndex                 = 1,
         Name                   = "DropShadowHolder",
-        Position               = UDim2.fromOffset(
-            math.floor(rootGui.AbsoluteSize.X / 2 - (scaledW + DPI:S(50)) / 2),
-            math.floor(rootGui.AbsoluteSize.Y / 2 - (scaledH + DPI:S(50)) / 2)
-        ),
+        Position               = UDim2.new(0.5, 0, 0.5, 0),
     }, rootGui)
 
     local dropShadow = Custom:Create("ImageLabel", {
@@ -469,7 +521,7 @@ function H4Library:CreateWindow(cfg)
         BorderSizePixel     = 0,
         Position            = UDim2.new(0.5, 0, 0.5, 0),
         Size                = SizeUi,
-        ZIndex              = 0,
+        ZIndex              = 1,
         Name                = "DropShadow",
     }, shadowHolder)
 
@@ -750,8 +802,10 @@ function H4Library:CreateWindow(cfg)
         if not H4Library.Unloaded then H4Library.Unloaded = true end
     end)
 
-    -- Resize shadow holder berdasarkan judul
-    shadowHolder.Size = DPI:U2(0, 115 + titleLbl.TextBounds.X + 1 + descLbl.TextBounds.X, 0, scaledH + 50)
+    -- Resize shadow holder setelah render (TextBounds butuh 1 frame)
+    task.defer(function()
+        shadowHolder.Size = UDim2.fromOffset(scaledW + DPI:S(50), scaledH + DPI:S(50))
+    end)
     MakeDraggable(Top, shadowHolder)
 
     -- ============================================================
@@ -1783,7 +1837,8 @@ function H4Library:CreateWindow(cfg)
                     dFuncs.Value = val or dFuncs.Value
                     for _, opt in pairs(scrollSel:GetChildren()) do
                         if opt.Name ~= "UIListLayout" and opt.Name ~= "SearchBar" then
-                            local found = table.find(dFuncs.Value, opt.OptionText.Text)
+                            local optTextInst = opt:FindFirstChild("OptionText")
+                            local found = optTextInst and table.find(dFuncs.Value, optTextInst.Text)
                             local ti = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
                             TweenService:Create(opt.ChooseFrame, ti, {
                                 Size = found and DPI:U2(0,2,0,12) or DPI:U2(0,0,0,0),
@@ -1818,7 +1873,7 @@ function H4Library:CreateWindow(cfg)
                         Size                   = UDim2.new(1, 0, 1, 0),
                         Name                   = "OptionButton",
                     }, Opt)
-                    Opt.OptionText = Custom:Create("TextLabel", {
+                    Custom:Create("TextLabel", {
                         Font                   = Enum.Font.GothamBold,
                         Text                   = optName,
                         TextSize               = DPI:F(13),
@@ -1845,12 +1900,10 @@ function H4Library:CreateWindow(cfg)
 
                     optBtn.Activated:Connect(function()
                         CircleClick(optBtn, Player:GetMouse().X, Player:GetMouse().Y)
-                        local isSel = Opt.BackgroundTransparency > 0.95
+                        local alreadySel = table.find(dFuncs.Value, optName) ~= nil
                         if DMulti then
-                            if isSel then
-                                if not table.find(dFuncs.Value, optName) then
-                                    table.insert(dFuncs.Value, optName)
-                                end
+                            if not alreadySel then
+                                table.insert(dFuncs.Value, optName)
                             else
                                 for i, v in ipairs(dFuncs.Value) do
                                     if v == optName then table.remove(dFuncs.Value, i); break end
