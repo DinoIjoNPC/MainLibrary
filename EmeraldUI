@@ -324,17 +324,20 @@ local function MakeOpenCloseButton()
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
     }, GetGuiParent())
 
-    local btn = Custom:Create("ImageButton", {
-        BackgroundColor3     = Color3.fromRGB(0,0,0),
-        BackgroundTransparency = 1,
-        BorderColor3         = Theme.AccentGreen,
+    local btn = Custom:Create("TextButton", {
+        BackgroundColor3     = Theme.BGItem,
+        BackgroundTransparency = 0,
+        BorderSizePixel      = 0,
         Position             = DPI:U2(0.1, 0, 0.07, 0),
-        Size                 = DPI:U2(0, 59, 0, 49),
-        Image                = "rbxassetid://136893287430224",
+        Size                 = DPI:U2(0, 42, 0, 28),
+        Text                 = "\xe2\x96\xb6 UI",
+        Font                 = Enum.Font.GothamBold,
+        TextColor3           = Theme.AccentGreen,
+        TextSize             = DPI:F(12),
         Visible              = false,
     }, sg)
-
-    Custom:Create("UICorner", { CornerRadius = DPI:U(0, 9) }, btn)
+    Custom:Create("UICorner", { CornerRadius = DPI:U(0, 6) }, btn)
+    Custom:Create("UIStroke", { Color = Theme.AccentGreen, Thickness = 1 }, btn)
 
     -- Draggable
     local dragging, dragStart, startPos = false, nil, nil
@@ -666,7 +669,6 @@ function H4Library:CreateWindow(cfg)
     local function BuildDescBadge()
         if Description == nil or Description == "" then return end
 
-        -- Separator
         sepLbl = Custom:Create("TextLabel", {
             Font                   = Enum.Font.GothamBold,
             Text                   = "|",
@@ -675,34 +677,32 @@ function H4Library:CreateWindow(cfg)
             BackgroundTransparency = 1,
             BorderSizePixel        = 0,
             AnchorPoint            = Vector2.new(0, 0.5),
-            Position               = DPI:U2(0, titleX + DPI:S(8), 0.5, 0),
-            Size                   = DPI:U2(0, DPI:S(12), 0, DPI:S(16)),
+            Position               = DPI:U2(0, titleX + DPI:S(120), 0.5, 0),
+            Size                   = DPI:U2(0, DPI:S(10), 0, DPI:S(16)),
             Name                   = "Separator",
         }, Top)
 
-        -- Badge frame
         descBadge = Custom:Create("Frame", {
-            BackgroundColor3       = Theme.BGSecondary,
-            BackgroundTransparency = 0.25,
+            BackgroundColor3       = Color3.fromRGB(20, 20, 20),
+            BackgroundTransparency = 0.15,
             BorderSizePixel        = 0,
             AnchorPoint            = Vector2.new(0, 0.5),
-            Position               = DPI:U2(0, titleX + DPI:S(8) + DPI:S(16), 0.5, 0),
+            Position               = DPI:U2(0, titleX + DPI:S(120) + DPI:S(14), 0.5, 0),
             AutomaticSize          = Enum.AutomaticSize.X,
-            Size                   = DPI:U2(0, 0, 0, DPI:S(22)),
+            Size                   = DPI:U2(0, 0, 0, DPI:S(20)),
             Name                   = "DescBadge",
         }, Top)
-        Custom:Create("UICorner", { CornerRadius = DPI:U(0, 6) }, descBadge)
+        Custom:Create("UICorner", { CornerRadius = DPI:U(0, 5) }, descBadge)
         descStroke = Custom:Create("UIStroke", {
             Color        = Theme.AccentGreen,
             Thickness    = 1,
-            Transparency = 0.3,
+            Transparency = 0.2,
         }, descBadge)
         Custom:Create("UIPadding", {
-            PaddingLeft  = DPI:U(0, 9),
-            PaddingRight = DPI:U(0, 9),
+            PaddingLeft  = DPI:U(0, 8),
+            PaddingRight = DPI:U(0, 8),
         }, descBadge)
 
-        -- Text di dalam badge
         descInner = Custom:Create("TextLabel", {
             Font                   = Enum.Font.GothamBold,
             Text                   = Description,
@@ -721,16 +721,16 @@ function H4Library:CreateWindow(cfg)
 
     BuildDescBadge()
 
-    -- Update posisi sep & badge setelah titleLbl AutomaticSize settle
     task.defer(function()
+        task.wait()
         local tw = titleLbl.AbsoluteSize.X
         if tw > 0 then
-            local newSepX = titleX + tw + DPI:S(8)
+            local newSepX = titleX + tw + DPI:S(6)
             if sepLbl then
                 sepLbl.Position = DPI:U2(0, newSepX, 0.5, 0)
             end
             if descBadge then
-                descBadge.Position = DPI:U2(0, newSepX + DPI:S(16), 0.5, 0)
+                descBadge.Position = DPI:U2(0, newSepX + DPI:S(12), 0.5, 0)
             end
         end
     end)
@@ -768,14 +768,16 @@ function H4Library:CreateWindow(cfg)
     }, Top)
 
     -- Minimize button
-    local MinBtn = Custom:Create("ImageButton", {
-        Image                  = "rbxassetid://136893287430224",
-        ImageColor3            = Theme.TextPrimary,
+    local MinBtn = Custom:Create("TextButton", {
+        Font                   = Enum.Font.GothamBold,
+        Text                   = "—",
+        TextColor3             = Theme.TextPrimary,
+        TextSize               = DPI:F(16),
+        AnchorPoint            = Vector2.new(1, 0.5),
         BackgroundTransparency = 0.999,
         BorderSizePixel        = 0,
-        AnchorPoint            = Vector2.new(1, 0.5),
         Position               = UDim2.new(1, -DPI:S(42), 0.5, 0),
-        Size                   = DPI:U2(0, 22, 0, 22),
+        Size                   = DPI:U2(0, 25, 0, 25),
         Name                   = "Min",
     }, Top)
 
@@ -804,7 +806,7 @@ function H4Library:CreateWindow(cfg)
     Custom:Create("UIStroke", { Color = Theme.AccentGreen, Thickness = 1, Transparency = 0.7 }, SearchBarFrame)
 
     local SearchIcon = Custom:Create("ImageLabel", {
-        Image                  = "rbxassetid://3926305904",
+        Image                  = "rbxassetid://76838959085485",
         ImageColor3            = Theme.AccentGreen,
         BackgroundTransparency = 1,
         BorderSizePixel        = 0,
