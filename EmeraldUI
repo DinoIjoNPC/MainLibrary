@@ -619,15 +619,25 @@ function H4Library:CreateWindow(cfg)
     }, Main)
     Custom:Create("UICorner", { CornerRadius = DPI:U(0, 5) }, Top)
 
-    -- Title label (hijau-putih gradient pakai UIGradient on TextLabel trick)
-    local titleFrame = Custom:Create("Frame", {
+    local iconSize   = DPI:S(20)
+    local iconPad    = DPI:S(8)
+    local rightPad   = DPI:S(60)
+    local CfgIcon    = cfg.Icon or "rbxassetid://136893287430224"
+
+    -- Window Icon (kiri topbar)
+    local WindowIcon = Custom:Create("ImageLabel", {
+        Image                  = CfgIcon,
+        ImageColor3            = Theme.AccentGreen,
         BackgroundTransparency = 1,
         BorderSizePixel        = 0,
-        Position               = DPI:U2(0, 10, 0, 0),
-        Size                   = DPI:U2(0, 160, 1, 0),
-        Name                   = "TitleFrame",
+        AnchorPoint            = Vector2.new(0, 0.5),
+        Position               = DPI:U2(0, iconPad, 0.5, 0),
+        Size                   = UDim2.fromOffset(iconSize, iconSize),
+        Name                   = "WindowIcon",
     }, Top)
 
+    -- Title label dengan gradient
+    local titleX = iconPad + iconSize + DPI:S(6)
     local titleLbl = Custom:Create("TextLabel", {
         Font                   = Enum.Font.GothamBold,
         Text                   = Title,
@@ -636,29 +646,112 @@ function H4Library:CreateWindow(cfg)
         TextXAlignment         = Enum.TextXAlignment.Left,
         BackgroundTransparency = 1,
         BorderSizePixel        = 0,
-        Size                   = UDim2.new(1, 0, 1, 0),
+        AnchorPoint            = Vector2.new(0, 0.5),
+        Position               = DPI:U2(0, titleX, 0.5, 0),
+        Size                   = DPI:U2(0, 120, 0, DPI:S(18)),
+        AutomaticSize          = Enum.AutomaticSize.X,
         Name                   = "TitleLabel",
-    }, titleFrame)
-    -- Gradient text effect (UIGradient pada TextLabel)
+    }, Top)
     Custom:Create("UIGradient", {
         Color    = Theme.GreenWhiteGradient(),
         Rotation = 0,
     }, titleLbl)
 
-    -- Description label
-    local descLbl = Custom:Create("TextLabel", {
-        Font                   = Enum.Font.GothamBold,
-        Text                   = Description,
-        TextColor3             = Theme.TextPrimary,
-        TextSize               = DPI:F(14),
-        TextXAlignment         = Enum.TextXAlignment.Left,
-        BackgroundTransparency = 1,
-        BorderSizePixel        = 0,
-        Size                   = DPI:U2(1, -(titleLbl.TextBounds.X + 104), 1, 0),
-        Position               = DPI:U2(0, titleLbl.TextBounds.X + 15, 0, 0),
-        Name                   = "DescLabel",
-    }, Top)
-    Custom:Create("UIStroke", { Color = Theme.AccentGreen, Thickness = 0.4 }, descLbl)
+    -- Separator "|" antara Title dan Description
+    local sepLbl = nil
+    local descBadge = nil
+    local descInner = nil
+    local descStroke = nil
+
+    local function BuildDescBadge()
+        if Description == nil or Description == "" then return end
+
+        -- Separator
+        sepLbl = Custom:Create("TextLabel", {
+            Font                   = Enum.Font.GothamBold,
+            Text                   = "|",
+            TextColor3             = Theme.TextSecondary,
+            TextSize               = DPI:F(13),
+            BackgroundTransparency = 1,
+            BorderSizePixel        = 0,
+            AnchorPoint            = Vector2.new(0, 0.5),
+            Position               = DPI:U2(0, titleX + DPI:S(8), 0.5, 0),
+            Size                   = DPI:U2(0, DPI:S(12), 0, DPI:S(16)),
+            Name                   = "Separator",
+        }, Top)
+
+        -- Badge frame
+        descBadge = Custom:Create("Frame", {
+            BackgroundColor3       = Theme.BGSecondary,
+            BackgroundTransparency = 0.25,
+            BorderSizePixel        = 0,
+            AnchorPoint            = Vector2.new(0, 0.5),
+            Position               = DPI:U2(0, titleX + DPI:S(8) + DPI:S(16), 0.5, 0),
+            AutomaticSize          = Enum.AutomaticSize.X,
+            Size                   = DPI:U2(0, 0, 0, DPI:S(22)),
+            Name                   = "DescBadge",
+        }, Top)
+        Custom:Create("UICorner", { CornerRadius = DPI:U(0, 6) }, descBadge)
+        descStroke = Custom:Create("UIStroke", {
+            Color        = Theme.AccentGreen,
+            Thickness    = 1,
+            Transparency = 0.3,
+        }, descBadge)
+        Custom:Create("UIPadding", {
+            PaddingLeft  = DPI:U(0, 9),
+            PaddingRight = DPI:U(0, 9),
+        }, descBadge)
+
+        -- Text di dalam badge
+        descInner = Custom:Create("TextLabel", {
+            Font                   = Enum.Font.GothamBold,
+            Text                   = Description,
+            TextColor3             = Theme.TextPrimary,
+            TextSize               = DPI:F(12),
+            TextXAlignment         = Enum.TextXAlignment.Center,
+            BackgroundTransparency = 1,
+            BorderSizePixel        = 0,
+            AnchorPoint            = Vector2.new(0, 0.5),
+            Position               = UDim2.new(0, 0, 0.5, 0),
+            AutomaticSize          = Enum.AutomaticSize.X,
+            Size                   = UDim2.new(0, 0, 1, 0),
+            Name                   = "DescText",
+        }, descBadge)
+    end
+
+    BuildDescBadge()
+
+    -- Update posisi sep & badge setelah titleLbl AutomaticSize settle
+    task.defer(function()
+        local tw = titleLbl.AbsoluteSize.X
+        if tw > 0 then
+            local newSepX = titleX + tw + DPI:S(8)
+            if sepLbl then
+                sepLbl.Position = DPI:U2(0, newSepX, 0.5, 0)
+            end
+            if descBadge then
+                descBadge.Position = DPI:U2(0, newSepX + DPI:S(16), 0.5, 0)
+            end
+        end
+    end)
+
+    -- Register ke ThemeListeners agar badge ikut update saat SetTheme
+    OnThemeChanged(function(preset)
+        if descBadge then
+            descBadge.BackgroundColor3 = Theme.BGSecondary
+        end
+        if descStroke then
+            descStroke.Color = preset.Accent
+        end
+        if descInner then
+            descInner.TextColor3 = Theme.TextPrimary
+        end
+        if sepLbl then
+            sepLbl.TextColor3 = Theme.TextSecondary
+        end
+        WindowIcon.ImageColor3 = preset.Accent
+        titleLbl:FindFirstChildOfClass("UIGradient").Color = Theme.AccentGradient()
+    end)
 
     -- Close button
     local CloseBtn = Custom:Create("TextButton", {
@@ -1040,8 +1133,7 @@ function H4Library:CreateWindow(cfg)
         -- Pesan
         local dMsg = Instance.new("TextLabel")
         dMsg.Font = Enum.Font.GothamBold
-        dMsg.Text = "Are you sure you want to
-close this script?"
+        dMsg.Text = "Are you sure you want to\nclose this script?"
         dMsg.TextColor3 = Theme.TextPrimary
         dMsg.TextSize = DPI:F(13)
         dMsg.Size = DPI:U2(1, -20, 0, 40)
