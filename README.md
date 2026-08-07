@@ -1,39 +1,356 @@
 # EmeraldUI
-**A lightweight, adaptive Roblox UI Library built for performance and consistency across all devices.**
 
-> Developed by **Dino** · Brand: **Doz Y / Violence District**
+**Lightweight, adaptive Roblox UI Library untuk semua perangkat.**
 
----
-
-## Features
-
-| Feature | Description |
-|---|---|
-| 🎨 **Theme Switcher** | 8 preset warna ikonik dengan gradient, bisa diganti dari script pemanggil |
-| 🖼️ **Tab Thumbnail** | Load gambar dari URL apapun sebagai thumbnail per tab |
-| 🔍 **Global Search Bar** | Search tab secara realtime, ada di atas sidebar |
-| 📱 **Adaptive DPI Scaling** | GUI otomatis proporsional di HP, Tablet, dan PC |
-| 🪟 **Draggable Window** | Window bisa dipindah bebas |
-| 🔒 **Close Confirmation** | Dialog konfirmasi sebelum menutup script |
-| ⚡ **Smooth Animations** | Semua transisi pakai TweenService |
-| 📦 **Accordion Section** | Section bisa dibuka/tutup |
-| 🔽 **Searchable Dropdown** | Dropdown dengan search bar bawaan |
-| 🔔 **Notification Popup** | Notifikasi pojok layar dengan auto-close |
-| 🗂️ **Multi-Tab + Icon** | Sidebar multi tab dengan icon |
+> by **Dino** · Doz Y / Violence District
 
 ---
 
-## Installation
+## Instalasi
 
 ```lua
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/DinoIjoNPC/MainLibrary/refs/heads/main/EmeraldUI"))()
 ```
 
-> ⚠️ Tidak ada ekstensi `.lua` pada URL.
+> ⚠️ URL tidak pakai ekstensi `.lua`
 
 ---
 
-## Quick Start
+## Membuat Window
+
+```lua
+local Window = Library:CreateWindow({
+    Title       = "NamaScript",
+    Description = "Nama Game",
+    Theme       = "Green",
+    Icon        = "rbxassetid://136893287430224",
+})
+```
+
+| Key | Fungsi | Default |
+|---|---|---|
+| `Title` | Judul window di topbar | `"EmeraldUI"` |
+| `Description` | Badge di sebelah kanan judul | `""` (tidak muncul jika kosong) |
+| `Theme` | Warna tema | `"Green"` |
+| `Icon` | Icon di kiri judul | `"rbxassetid://136893287430224"` |
+
+---
+
+## Membuat Tab
+
+```lua
+local Tab = Window:CreateTab({
+    Name      = "Main",
+    Icon      = "rbxassetid://10723407389",
+    Thumbnail = "https://i.pinimg.com/originals/xx.jpg",
+})
+```
+
+| Key | Fungsi | Default |
+|---|---|---|
+| `Name` | Nama tab di sidebar | wajib |
+| `Icon` | Icon tab | `""` |
+| `Thumbnail` | Gambar thumbnail di atas konten tab | `nil` |
+
+---
+
+## Membuat Section / Accordion
+
+```lua
+local Section = Tab:AddSection("Nama Section", true)
+```
+
+| Parameter | Fungsi |
+|---|---|
+| `"Nama Section"` | Judul section |
+| `true` | Buka saat load (`false` = tutup) |
+
+---
+
+## Toggle
+
+```lua
+Section:AddToggle({
+    "Nama Toggle",
+    "Deskripsi",
+    false,
+    function(value)
+        print(value)
+    end
+})
+```
+
+| Index | Fungsi |
+|---|---|
+| `1` | Nama toggle |
+| `2` | Deskripsi |
+| `3` | Default value (`true`/`false`) |
+| `4` | Callback, `value` = kondisi saat ini |
+
+---
+
+## Button
+
+```lua
+Section:AddButton({
+    "Nama Button",
+    "Deskripsi",
+    "rbxassetid://10723407389",
+    function()
+        print("Klik!")
+    end
+})
+```
+
+| Index | Fungsi |
+|---|---|
+| `1` | Nama button |
+| `2` | Deskripsi |
+| `3` | Icon (kosongkan `""` jika tidak pakai) |
+| `4` | Callback |
+
+---
+
+## Slider
+
+```lua
+local MySlider = Section:AddSlider({
+    "Nama Slider",
+    "Deskripsi",
+    1,
+    0,
+    100,
+    50,
+    function(value)
+        print(value)
+    end
+})
+```
+
+| Index | Fungsi |
+|---|---|
+| `1` | Nama |
+| `2` | Deskripsi |
+| `3` | Increment (langkah per geser) |
+| `4` | Nilai minimum |
+| `5` | Nilai maksimum |
+| `6` | Nilai default |
+| `7` | Callback |
+
+**Set nilai dari luar:**
+```lua
+MySlider:Set(75)
+```
+
+---
+
+## Input
+
+```lua
+local MyInput = Section:AddInput({
+    "Nama Input",
+    "Placeholder...",
+    "",
+    function(value)
+        print(value)
+    end
+})
+```
+
+| Index | Fungsi |
+|---|---|
+| `1` | Nama |
+| `2` | Placeholder teks |
+| `3` | Nilai default |
+| `4` | Callback (dipanggil saat FocusLost) |
+
+**Set nilai dari luar:**
+```lua
+MyInput:Set("teks baru")
+```
+
+---
+
+## Dropdown
+
+```lua
+local MyDrop = Section:AddDropdown({
+    "Nama Dropdown",
+    "Deskripsi",
+    false,
+    {"Opsi A", "Opsi B", "Opsi C"},
+    {},
+    function(value)
+        print(value[1])
+    end
+})
+```
+
+| Index | Fungsi |
+|---|---|
+| `1` | Nama |
+| `2` | Deskripsi |
+| `3` | Multi-select (`true`/`false`) |
+| `4` | Daftar opsi |
+| `5` | Default selected (tabel) |
+| `6` | Callback, `value` = tabel opsi terpilih |
+
+**Set / refresh dari luar:**
+```lua
+MyDrop:Set({"Opsi A"})
+MyDrop:Refresh({"Opsi Baru 1", "Opsi Baru 2"}, {})
+MyDrop:AddOption("Opsi D")
+MyDrop:Clear()
+```
+
+---
+
+## Paragraph
+
+```lua
+Section:AddParagraph({
+    "Judul",
+    "Isi teks paragraph di sini."
+})
+```
+
+---
+
+## Separator
+
+```lua
+Section:AddSeperator({ "Label Separator" })
+```
+
+---
+
+## Line
+
+```lua
+Section:AddLine()
+```
+
+---
+
+## Notification
+
+```lua
+Library:SetNotification({
+    "Judul",
+    "Subjudul",
+    "Isi pesan notifikasi.",
+    nil,
+    0.4,
+    5,
+})
+```
+
+| Index | Fungsi |
+|---|---|
+| `1` | Judul notifikasi |
+| `2` | Subjudul (warna accent) |
+| `3` | Isi pesan |
+| `4` | Tidak dipakai, isi `nil` |
+| `5` | Durasi animasi (detik) |
+| `6` | Waktu sebelum auto-close (detik) |
+
+**Notifikasi saat execute:**
+```lua
+Library:SetNotification({
+    "EmeraldUI",
+    "Loaded!",
+    "Script berhasil dijalankan.",
+    nil, 0.4, 4,
+})
+```
+
+**Notifikasi numpuk** → otomatis naik ke atas secara smooth.
+
+---
+
+## Theme Switcher
+
+**Set tema saat buat window:**
+```lua
+local Window = Library:CreateWindow({
+    Title = "Script",
+    Theme = "Purple",
+})
+```
+
+**Ganti tema saat runtime:**
+```lua
+Window:SetTheme("Blue")
+```
+
+| Nama | Warna |
+|---|---|
+| `"Green"` | Hijau ← Default |
+| `"Blue"` | Biru |
+| `"Purple"` | Ungu |
+| `"Red"` | Merah |
+| `"Gold"` | Emas |
+| `"Cyan"` | Cyan |
+| `"Pink"` | Pink |
+| `"Orange"` | Orange |
+
+---
+
+## Thumbnail
+
+**Thumbnail global (semua tab):**
+```lua
+local Window = Library:CreateWindow({
+    Title     = "Script",
+    Thumbnail = "https://link-gambar.com/img.jpg",
+})
+```
+
+**Thumbnail per tab:**
+```lua
+local Tab = Window:CreateTab({
+    Name      = "Main",
+    Thumbnail = "https://link-gambar.com/img.jpg",
+})
+```
+
+**Ganti thumbnail saat runtime:**
+```lua
+Window:SetThumbnail("https://link-gambar.com/img.jpg")
+Window:SetTabThumbnail(0, "https://link-gambar.com/img.jpg")
+```
+
+> ℹ️ Pakai direct link ke file gambar, bukan halaman web. Di Pinterest: klik kanan gambar → Copy image address.
+
+---
+
+## Search Bar Global
+
+Tidak perlu setup apapun. Search bar otomatis muncul di atas daftar tab dan memfilter tab secara realtime saat diketik.
+
+---
+
+## Window Icon
+
+```lua
+local Window = Library:CreateWindow({
+    Title = "Script",
+    Icon  = "rbxassetid://10723407389",
+})
+```
+
+Jika tidak diisi, otomatis pakai icon default.
+
+---
+
+## Minimize & Close
+
+- **`—`** → Minimize, GUI hilang tapi script tetap jalan. Muncul tombol kecil untuk restore.
+- **`X`** → Muncul dialog konfirmasi. Pilih **Close** untuk matikan semua, pilih **Cancel** untuk batal.
+
+---
+
+## Contoh Script Lengkap
 
 ```lua
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/DinoIjoNPC/MainLibrary/refs/heads/main/EmeraldUI"))()
@@ -41,189 +358,39 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/DinoI
 local Window = Library:CreateWindow({
     Title       = "MyScript",
     Description = "Game Name",
-    Theme       = "Green",      -- Default tema
-    Thumbnail   = "",           -- URL thumbnail global (opsional)
+    Theme       = "Green",
+    Icon        = "rbxassetid://10723407389",
 })
 
-local Tab = Window:CreateTab({
-    Name      = "Main",
-    Icon      = "rbxassetid://10723407389",
-    Thumbnail = "",   -- URL thumbnail per tab (opsional, override global)
-})
-
-local Section = Tab:AddSection("Features", true)
-
-Section:AddToggle({
-    "God Mode", "Toggle invincibility", false,
-    function(v) print("GodMode:", v) end
-})
-```
-
----
-
-## Theme Switcher
-
-### Preset yang tersedia
-
-| Nama | Warna Accent |
-|---|---|
-| `"Green"` | Hijau `RGB(0,200,100)` ← Default |
-| `"Blue"` | Biru `RGB(0,140,255)` |
-| `"Purple"` | Ungu `RGB(160,60,255)` |
-| `"Red"` | Merah `RGB(255,50,80)` |
-| `"Gold"` | Emas `RGB(255,190,0)` |
-| `"Cyan"` | Cyan `RGB(0,220,220)` |
-| `"Pink"` | Pink `RGB(255,80,180)` |
-| `"Orange"` | Orange `RGB(255,130,0)` |
-
-### Set dari script pemanggil
-
-```lua
--- Set saat CreateWindow
-local Window = Library:CreateWindow({
-    Title = "MyScript",
-    Theme = "Purple",   -- ganti tema di sini
-})
-
--- Set setelah window dibuat (runtime)
-Window:SetTheme("Blue")
-Window:SetTheme("Gold")
-```
-
----
-
-## Tab Thumbnail
-
-Load gambar dari URL apapun sebagai thumbnail di bagian atas konten tab.
-
-```lua
--- Thumbnail global (semua tab pakai ini kalau tidak ada per-tab)
-local Window = Library:CreateWindow({
-    Title     = "MyScript",
-    Thumbnail = "https://i.pinimg.com/originals/xx/xx/xx.jpg",
-})
-
--- Thumbnail per tab (override global)
-local Tab = Window:CreateTab({
-    Name      = "Main",
-    Icon      = "rbxassetid://10723407389",
-    Thumbnail = "https://i.pinimg.com/originals/xx/xx/xx.jpg",
-})
-
--- Set thumbnail runtime dari script
-Window:SetThumbnail("https://...")           -- ganti global
-Window:SetTabThumbnail(0, "https://...")     -- ganti tab index 0
-```
-
-> ℹ️ Thumbnail support semua URL yang mengembalikan gambar (PNG/JPG/WEBP). Tidak ada whitelist domain.
-
----
-
-## Global Search Bar
-
-Search bar otomatis muncul di atas daftar tab sidebar. Mengetik di sana akan memfilter tab secara realtime. Tidak perlu setup apapun dari script pemanggil.
-
----
-
-## API Reference
-
-### `Library:CreateWindow(config)`
-
-| Key | Type | Default | Description |
-|---|---|---|---|
-| `Title` | string | `"EmeraldUI"` | Judul window |
-| `Description` | string | `""` | Subjudul |
-| `Theme` | string | `"Green"` | Preset tema warna |
-| `Thumbnail` | string | `nil` | URL gambar thumbnail global |
-
----
-
-### `Window:CreateTab(config)`
-
-| Key | Type | Description |
-|---|---|---|
-| `Name` | string | Nama tab |
-| `Icon` | string | Asset ID icon |
-| `Thumbnail` | string | URL thumbnail khusus tab ini |
-
----
-
-### `Window:SetTheme(presetName)`
-Ganti tema runtime. `presetName` harus salah satu dari 8 preset.
-
-### `Window:SetThumbnail(url)`
-Ganti thumbnail global runtime.
-
-### `Window:SetTabThumbnail(tabIndex, url)`
-Ganti thumbnail tab tertentu. Index mulai dari `0`.
-
----
-
-### `Tab:AddSection(title, open)`
-
-| Parameter | Type | Description |
-|---|---|---|
-| `title` | string | Judul section |
-| `open` | boolean | `true` = buka, `false` = tutup saat load |
-
----
-
-### Components
-
-#### `Section:AddToggle(config)`
-```lua
-Section:AddToggle({ "Title", "Description", false, function(v) end })
-```
-
-#### `Section:AddButton(config)`
-```lua
-Section:AddButton({ "Title", "Description", "rbxassetid://...", function() end })
-```
-
-#### `Section:AddSlider(config)`
-```lua
-Section:AddSlider({ "Title", "Description", 1, 0, 100, 50, function(v) end })
---                                           ^inc ^min ^max ^default
-```
-
-#### `Section:AddInput(config)`
-```lua
-Section:AddInput({ "Title", "Placeholder", "default", function(v) end })
-```
-
-#### `Section:AddDropdown(config)`
-```lua
-Section:AddDropdown({ "Title", "Description", false, {"A","B","C"}, {}, function(v) end })
---                                             ^multi                ^default selected
-```
-
-#### `Section:AddParagraph(config)`
-```lua
-Section:AddParagraph({ "Title", "Content text" })
-```
-
-#### `Section:AddSeperator(config)`
-```lua
-Section:AddSeperator({ "Label" })
-```
-
-#### `Section:AddLine()`
-```lua
-Section:AddLine()
-```
-
----
-
-### `Library:SetNotification(config)`
-
-```lua
 Library:SetNotification({
-    "EmeraldUI",
-    "Success",
-    "Action completed.",
-    nil,
-    0.5,   -- tween time
-    5,     -- auto-close delay (detik)
+    "MyScript", "Loaded!", "Script aktif.", nil, 0.4, 4,
+})
+
+local Tab = Window:CreateTab({ Name = "Main", Icon = "rbxassetid://10723407389" })
+local Sec = Tab:AddSection("Fitur", true)
+
+Sec:AddToggle({
+    "God Mode", "Tidak bisa mati", false,
+    function(v)
+        -- kode di sini
+    end
+})
+
+Sec:AddSlider({
+    "Speed", "Kecepatan jalan", 1, 16, 500, 16,
+    function(v)
+        local char = game.Players.LocalPlayer.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.WalkSpeed = v
+        end
+    end
+})
+
+Sec:AddButton({
+    "Rejoin", "Masuk server baru", "",
+    function()
+        game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+    end
 })
 ```
 
@@ -232,14 +399,20 @@ Library:SetNotification({
 ## Changelog
 
 ### v4.0.0 — Latest
-- ✅ Theme Switcher (8 preset gradient ikonik)
+- ✅ Window Icon di topbar
+- ✅ Description Badge modern (border + rounded)
+- ✅ Theme Switcher — 8 preset gradient
 - ✅ `SetTheme()` dari script pemanggil
-- ✅ Tab Thumbnail — load gambar dari URL apapun
-- ✅ `SetThumbnail()` dan `SetTabThumbnail()` runtime
-- ✅ Global Search Bar di atas sidebar tab
+- ✅ Tab Thumbnail dari URL apapun
+- ✅ Global Search Bar di atas sidebar
+- ✅ Notification stack naik ke atas saat numpuk
+- ✅ Button icon conditional (tidak buat frame kosong)
+- ✅ Search icon emoji (tidak bergantung asset ID)
+- ✅ OpenCloseBtn dikembalikan ke ImageButton
+- ✅ `GetGuiParent()` helper berlapis untuk semua executor
 
 ### v3.0.0
-- ✅ Toggle circle fix (hilang saat ON)
+- ✅ Toggle circle fix
 - ✅ Slider smooth di HP
 - ✅ Close confirmation dialog
 - ✅ DPI Scaling HP diperbaiki
@@ -248,20 +421,23 @@ Library:SetNotification({
 - ✅ `Opt.OptionText` crash fix
 - ✅ ZIndex 0 fix
 - ✅ shadowHolder posisi fix
-- ✅ Custom:Create order fix
+- ✅ `Custom:Create` order fix
 
 ### v1.0.0
 - 🚀 Initial release
 
 ---
 
-## Notes
+## Requirements
 
-> **Important:** File di GitHub tidak menggunakan ekstensi. URL harus diakhiri `/EmeraldUI` tanpa `.lua`.
-
-> **Important:** Thumbnail menggunakan `ImageLabel.Image` — URL harus direct link ke file gambar, bukan halaman web. Contoh Pinterest: klik kanan gambar → "Copy image address".
-
-> **Warning:** Penggunaan library ini sepenuhnya tanggung jawab pengguna.
+| Executor | Support |
+|---|---|
+| Delta | ✅ |
+| Arceus X | ✅ |
+| Fluxus | ✅ |
+| Hydrogen | ✅ |
+| Solara | ✅ |
+| Synapse X | ✅ |
 
 ---
 
