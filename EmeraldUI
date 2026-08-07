@@ -297,6 +297,26 @@ end
 
 -- ============================================================
 --  OPEN/CLOSE TOGGLE BUTTON (minimize icon)
+-- Safe GUI parent getter
+local function GetGuiParent()
+    if RunService:IsStudio() then
+        return game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    end
+    local ok, result = pcall(function()
+        if gethui then return gethui() end
+    end)
+    if ok and result then return result end
+    local ok2, result2 = pcall(function()
+        if cloneref then return cloneref(game:GetService("CoreGui")) end
+    end)
+    if ok2 and result2 then return result2 end
+    local ok3, result3 = pcall(function()
+        return game:GetService("CoreGui")
+    end)
+    if ok3 and result3 then return result3 end
+    return game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+end
+
 -- ============================================================
 local function MakeOpenCloseButton()
     local sg = Custom:Create("ScreenGui", {
@@ -375,25 +395,6 @@ local H4Library = {}
 local Notification = {}
 H4Library.Unloaded = false
 
--- Safe GUI parent getter
-local function GetGuiParent()
-    if RunService:IsStudio() then
-        return game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-    end
-    local ok, result = pcall(function()
-        if gethui then return gethui() end
-    end)
-    if ok and result then return result end
-    local ok2, result2 = pcall(function()
-        if cloneref then return cloneref(game:GetService("CoreGui")) end
-    end)
-    if ok2 and result2 then return result2 end
-    local ok3, result3 = pcall(function()
-        return game:GetService("CoreGui")
-    end)
-    if ok3 and result3 then return result3 end
-    return game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-end
 
 -- ============================================================
 --  NOTIFICATION SYSTEM
