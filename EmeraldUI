@@ -793,8 +793,134 @@ function H4Library:CreateWindow(cfg)
     end)
     CloseBtn.Activated:Connect(function()
         CircleClick(CloseBtn, Player:GetMouse().X, Player:GetMouse().Y)
-        if rootGui then rootGui:Destroy() end
-        if not H4Library.Unloaded then H4Library.Unloaded = true end
+
+        -- Confirm dialog
+        local confirmGui = Instance.new("ScreenGui")
+        confirmGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        confirmGui.Parent = RunService:IsStudio() and Player.PlayerGui
+            or (gethui and gethui())
+            or (cloneref and cloneref(game:GetService("CoreGui")))
+            or game:GetService("CoreGui")
+
+        -- Overlay gelap
+        local overlay = Instance.new("Frame")
+        overlay.Size = UDim2.fromScale(1, 1)
+        overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        overlay.BackgroundTransparency = 0.4
+        overlay.BorderSizePixel = 0
+        overlay.ZIndex = 10
+        overlay.Parent = confirmGui
+
+        -- Dialog box
+        local dialog = Instance.new("Frame")
+        dialog.AnchorPoint = Vector2.new(0.5, 0.5)
+        dialog.Position = UDim2.fromScale(0.5, 0.5)
+        dialog.Size = DPI:U2(0, 280, 0, 130)
+        dialog.BackgroundColor3 = Theme.BGItem
+        dialog.BorderSizePixel = 0
+        dialog.ZIndex = 11
+        dialog.Parent = confirmGui
+        Instance.new("UICorner", dialog).CornerRadius = DPI:U(0, 10)
+
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Theme.AccentGreen
+        stroke.Thickness = 1.5
+        stroke.Parent = dialog
+
+        -- Title bar dialog
+        local dTop = Instance.new("Frame")
+        dTop.Size = DPI:U2(1, 0, 0, 36)
+        dTop.BackgroundColor3 = Theme.AccentGreen
+        dTop.BackgroundTransparency = 0.85
+        dTop.BorderSizePixel = 0
+        dTop.ZIndex = 11
+        dTop.Parent = dialog
+        Instance.new("UICorner", dTop).CornerRadius = DPI:U(0, 10)
+
+        local dTitle = Instance.new("TextLabel")
+        dTitle.Font = Enum.Font.GothamBold
+        dTitle.Text = "EmeraldUI"
+        dTitle.TextColor3 = Theme.AccentGreen
+        dTitle.TextSize = DPI:F(13)
+        dTitle.Size = UDim2.new(1, 0, 1, 0)
+        dTitle.Position = DPI:U2(0, 10, 0, 0)
+        dTitle.TextXAlignment = Enum.TextXAlignment.Left
+        dTitle.BackgroundTransparency = 1
+        dTitle.BorderSizePixel = 0
+        dTitle.ZIndex = 12
+        dTitle.Parent = dTop
+
+        -- Pesan
+        local dMsg = Instance.new("TextLabel")
+        dMsg.Font = Enum.Font.GothamBold
+        dMsg.Text = "Are you sure you want to
+close this script?"
+        dMsg.TextColor3 = Theme.TextPrimary
+        dMsg.TextSize = DPI:F(13)
+        dMsg.Size = DPI:U2(1, -20, 0, 40)
+        dMsg.Position = DPI:U2(0, 10, 0, 42)
+        dMsg.TextXAlignment = Enum.TextXAlignment.Left
+        dMsg.TextWrapped = true
+        dMsg.BackgroundTransparency = 1
+        dMsg.BorderSizePixel = 0
+        dMsg.ZIndex = 12
+        dMsg.Parent = dialog
+
+        -- Tombol Cancel
+        local btnCancel = Instance.new("TextButton")
+        btnCancel.Font = Enum.Font.GothamBold
+        btnCancel.Text = "Cancel"
+        btnCancel.TextColor3 = Theme.TextPrimary
+        btnCancel.TextSize = DPI:F(13)
+        btnCancel.Size = DPI:U2(0, 115, 0, 32)
+        btnCancel.Position = DPI:U2(0, 10, 1, -42)
+        btnCancel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        btnCancel.BackgroundTransparency = 0
+        btnCancel.BorderSizePixel = 0
+        btnCancel.ZIndex = 12
+        btnCancel.Parent = dialog
+        Instance.new("UICorner", btnCancel).CornerRadius = DPI:U(0, 6)
+
+        -- Tombol Close
+        local btnClose = Instance.new("TextButton")
+        btnClose.Font = Enum.Font.GothamBold
+        btnClose.Text = "Close"
+        btnClose.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btnClose.TextSize = DPI:F(13)
+        btnClose.Size = DPI:U2(0, 115, 0, 32)
+        btnClose.Position = DPI:U2(0, 155, 1, -42)
+        btnClose.BackgroundColor3 = Theme.AccentGreen
+        btnClose.BackgroundTransparency = 0
+        btnClose.BorderSizePixel = 0
+        btnClose.ZIndex = 12
+        btnClose.Parent = dialog
+        Instance.new("UICorner", btnClose).CornerRadius = DPI:U(0, 6)
+
+        -- Gradient pada tombol Close
+        local g = Instance.new("UIGradient")
+        g.Color = Theme.GreenWhiteGradient()
+        g.Rotation = 0
+        g.Parent = btnClose
+
+        btnCancel.Activated:Connect(function()
+            confirmGui:Destroy()
+        end)
+
+        btnClose.Activated:Connect(function()
+            confirmGui:Destroy()
+            -- Matikan semua: destroy GUI, set Unloaded, disconnect semua koneksi
+            H4Library.Unloaded = true
+            if rootGui then rootGui:Destroy() end
+            if OpenCloseBtn and OpenCloseBtn.Parent then
+                OpenCloseBtn.Parent:Destroy()
+            end
+            -- Disable semua script lokal (fire semua BindableEvent cleanup)
+            for _, v in pairs(game:GetService("Players").LocalPlayer:GetDescendants()) do
+                if v:IsA("LocalScript") and v.Name ~= "RobloxCharacterSounds" then
+                    pcall(function() v.Disabled = true end)
+                end
+            end
+        end)
     end)
 
     -- Resize shadow holder setelah render (TextBounds butuh 1 frame)
@@ -1343,15 +1469,16 @@ function H4Library:CreateWindow(cfg)
 
                 -- Switch pill
                 local pill = Custom:Create("Frame", {
-                    AnchorPoint          = Vector2.new(1, 0.5),
-                    BackgroundColor3     = Theme.TextPrimary,
-                    BackgroundTransparency = 0.92,
-                    BorderSizePixel      = 0,
-                    Position             = UDim2.new(1, -DPI:S(15), 0.5, 0),
-                    Size                 = DPI:U2(0, 30, 0, 15),
-                    Name                 = "TogglePill",
+                    AnchorPoint            = Vector2.new(1, 0.5),
+                    BackgroundColor3       = Color3.fromRGB(50, 50, 50),
+                    BackgroundTransparency = 0,
+                    BorderSizePixel        = 0,
+                    ClipsDescendants       = false,
+                    Position               = UDim2.new(1, -DPI:S(15), 0.5, 0),
+                    Size                   = DPI:U2(0, 30, 0, 15),
+                    Name                   = "TogglePill",
                 }, Tog)
-                Custom:Create("UICorner", { CornerRadius = DPI:U(0, 8) }, pill)
+                Custom:Create("UICorner", { CornerRadius = UDim.new(1, 0) }, pill)
                 local pillStroke = Custom:Create("UIStroke", {
                     Color        = Theme.TextPrimary,
                     Thickness    = 1.5,
@@ -1361,11 +1488,12 @@ function H4Library:CreateWindow(cfg)
                 local circle = Custom:Create("Frame", {
                     BackgroundColor3 = Theme.TextSecondary,
                     BorderSizePixel  = 0,
-                    Size             = DPI:U2(0, 14, 0, 14),
-                    Position         = DPI:U2(0, 0, 0, 0),
+                    Size             = DPI:U2(0, 13, 0, 13),
+                    Position         = DPI:U2(0, 1, 0.5, -DPI:S(6)),
+                    ZIndex           = 5,
                     Name             = "ToggleCircle",
                 }, pill)
-                Custom:Create("UICorner", { CornerRadius = DPI:U(0, 15) }, circle)
+                Custom:Create("UICorner", { CornerRadius = UDim.new(1, 0) }, circle)
 
                 local function ToggleAnim(on)
                     local ti = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
@@ -1373,16 +1501,16 @@ function H4Library:CreateWindow(cfg)
                         TextColor3 = on and Theme.AccentGreen or Theme.TextPrimary,
                     }):Play()
                     TweenService:Create(circle, ti, {
-                        Position = on and DPI:U2(0, 15, 0, 0) or DPI:U2(0, 0, 0, 0),
-                        BackgroundColor3 = on and Theme.AccentGreen or Theme.TextSecondary,
+                        Position         = on and DPI:U2(0, DPI:S(30) - DPI:S(14), 0.5, -DPI:S(6)) or DPI:U2(0, 1, 0.5, -DPI:S(6)),
+                        BackgroundColor3 = on and Theme.AccentWhite or Theme.TextSecondary,
                     }):Play()
                     TweenService:Create(pillStroke, ti, {
                         Color        = on and Theme.AccentGreen or Theme.TextPrimary,
                         Transparency = on and 0 or 0.9,
                     }):Play()
                     TweenService:Create(pill, ti, {
-                        BackgroundColor3     = on and Theme.AccentGreen or Theme.TextPrimary,
-                        BackgroundTransparency = on and 0 or 0.92,
+                        BackgroundColor3       = on and Theme.AccentGreen or Color3.fromRGB(50,50,50),
+                        BackgroundTransparency = 0,
                     }):Play()
                 end
 
@@ -1517,54 +1645,58 @@ function H4Library:CreateWindow(cfg)
                 local dragging = false
 
                 local function Round(n, f)
-                    local r = math.floor(n/f + (math.sign(n)*0.5)) * f
-                    if r < 0 then r = r + f end
-                    return r
+                    local r = math.floor(n / f + 0.5) * f
+                    return math.clamp(r, SLMin, SLMax)
                 end
 
                 function slFuncs:Set(val)
                     val = math.clamp(Round(val, SLInc), SLMin, SLMax)
                     slFuncs.Value = val
                     textBox.Text = tostring(val)
-                    TweenService:Create(fillBar, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                        { Size = UDim2.fromScale((val - SLMin) / (SLMax - SLMin), 1) }):Play()
+                    local pct = (val - SLMin) / math.max(SLMax - SLMin, 1)
+                    fillBar.Size = UDim2.fromScale(pct, 1)
+                end
+
+                local function GetScaleFromX(x)
+                    local rel = x - trackFrame.AbsolutePosition.X
+                    return math.clamp(rel / math.max(trackFrame.AbsoluteSize.X, 1), 0, 1)
                 end
 
                 trackFrame.InputBegan:Connect(function(i)
                     if i.UserInputType == Enum.UserInputType.MouseButton1
                     or i.UserInputType == Enum.UserInputType.Touch then
                         dragging = true
+                        local sc = GetScaleFromX(i.Position.X)
+                        slFuncs:Set(SLMin + (SLMax - SLMin) * sc)
                     end
                 end)
-                trackFrame.InputEnded:Connect(function(i)
-                    if i.UserInputType == Enum.UserInputType.MouseButton1
-                    or i.UserInputType == Enum.UserInputType.Touch then
-                        dragging = false; SLCallback(slFuncs.Value)
-                    end
-                end)
-                local lastX
+
                 UserInputService.InputChanged:Connect(function(i)
-                    if dragging then
-                        local cx = i.Position.X
-                        if cx ~= lastX then
-                            lastX = cx
-                            local sc = math.clamp((cx - trackFrame.AbsolutePosition.X) / math.max(trackFrame.AbsoluteSize.X, 1), 0, 1)
-                            slFuncs:Set(SLMin + ((SLMax - SLMin) * sc))
-                        end
+                    if dragging and (
+                        i.UserInputType == Enum.UserInputType.MouseMovement or
+                        i.UserInputType == Enum.UserInputType.Touch
+                    ) then
+                        local sc = GetScaleFromX(i.Position.X)
+                        slFuncs:Set(SLMin + (SLMax - SLMin) * sc)
                     end
                 end)
-                textBox:GetPropertyChangedSignal("Text"):Connect(function()
-                    local v = textBox.Text:gsub("[^%d]","")
-                    if v ~= "" then
-                        textBox.Text = tostring(math.min(tonumber(v), SLMax))
-                    else
-                        textBox.Text = "0"
+
+                UserInputService.InputEnded:Connect(function(i)
+                    if dragging and (
+                        i.UserInputType == Enum.UserInputType.MouseButton1 or
+                        i.UserInputType == Enum.UserInputType.Touch
+                    ) then
+                        dragging = false
+                        SLCallback(slFuncs.Value)
                     end
                 end)
+
                 textBox.FocusLost:Connect(function()
-                    slFuncs:Set(tonumber(textBox.Text) or 0)
+                    local v = tonumber(textBox.Text) or SLMin
+                    slFuncs:Set(v)
                     SLCallback(slFuncs.Value)
                 end)
+
                 slFuncs:Set(SLDefault)
                 SLCallback(slFuncs.Value)
 
