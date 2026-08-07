@@ -324,20 +324,19 @@ local function MakeOpenCloseButton()
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
     }, GetGuiParent())
 
-    local btn = Custom:Create("TextButton", {
-        BackgroundColor3     = Theme.BGItem,
+    local btn = Custom:Create("ImageButton", {
+        BackgroundColor3       = Theme.BGItem,
         BackgroundTransparency = 0,
-        BorderSizePixel      = 0,
-        Position             = DPI:U2(0.1, 0, 0.07, 0),
-        Size                 = DPI:U2(0, 42, 0, 28),
-        Text                 = "\xe2\x96\xb6 UI",
-        Font                 = Enum.Font.GothamBold,
-        TextColor3           = Theme.AccentGreen,
-        TextSize             = DPI:F(12),
-        Visible              = false,
+        BorderSizePixel        = 0,
+        Image                  = "rbxassetid://7072706620",
+        ImageColor3            = Theme.AccentGreen,
+        ScaleType              = Enum.ScaleType.Fit,
+        Position               = DPI:U2(0.05, 0, 0.05, 0),
+        Size                   = DPI:U2(0, 36, 0, 36),
+        Visible                = false,
     }, sg)
-    Custom:Create("UICorner", { CornerRadius = DPI:U(0, 6) }, btn)
-    Custom:Create("UIStroke", { Color = Theme.AccentGreen, Thickness = 1 }, btn)
+    Custom:Create("UICorner", { CornerRadius = DPI:U(0, 8) }, btn)
+    Custom:Create("UIStroke", { Color = Theme.AccentGreen, Thickness = 1.5 }, btn)
 
     -- Draggable
     local dragging, dragStart, startPos = false, nil, nil
@@ -415,37 +414,43 @@ function H4Library:SetNotification(cfg)
     }, GetGuiParent())
 
     local layout = Custom:Create("Frame", {
-        AnchorPoint          = Vector2.new(1,1),
+        AnchorPoint            = Vector2.new(1, 1),
         BackgroundTransparency = 0.999,
-        BorderSizePixel      = 0,
-        Position             = DPI:U2(1, -30, 1, -30),
-        Size                 = DPI:U2(0, 320, 1, 0),
-        Name                 = "NotificationLayout",
+        BorderSizePixel        = 0,
+        Position               = DPI:U2(1, -10, 1, -10),
+        Size                   = DPI:U2(0, 300, 1, 0),
+        Name                   = "NotificationLayout",
     }, notifGui)
 
-    local count = 0
-    layout.ChildRemoved:Connect(function()
-        count = 0
-        local ti = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
-        for _, v in ipairs(layout:GetChildren()) do
-            TweenService:Create(v, ti, {
-                Position = UDim2.new(0, 0, 1, -((v.Size.Y.Offset + 12) * count))
-            }):Play()
-            count += 1
-        end
-    end)
+    local NOTIF_GAP = DPI:S(8)
 
-    local _count = 0
-    for _, v in ipairs(layout:GetChildren()) do
-        _count = -(v.Position.Y.Offset) + v.Size.Y.Offset + 12
+    local function ReStackNotifs()
+        local children = {}
+        for _, v in ipairs(layout:GetChildren()) do
+            if v:IsA("Frame") and v.Name == "NotificationFrame" then
+                table.insert(children, v)
+            end
+        end
+        local totalY = 0
+        local ti = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        for i = #children, 1, -1 do
+            local v = children[i]
+            TweenService:Create(v, ti, {
+                Position = UDim2.new(0, 0, 1, -(totalY + v.Size.Y.Offset))
+            }):Play()
+            totalY = totalY + v.Size.Y.Offset + NOTIF_GAP
+        end
     end
+
+    layout.ChildAdded:Connect(ReStackNotifs)
+    layout.ChildRemoved:Connect(ReStackNotifs)
 
     local notifFrame = Custom:Create("Frame", {
         BackgroundTransparency = 1,
         BorderSizePixel        = 0,
-        Size                   = DPI:U2(1, 0, 0, 150),
-        AnchorPoint            = Vector2.new(0,1),
-        Position               = UDim2.new(0, 0, 1, -_count),
+        Size                   = DPI:U2(1, 0, 0, 90),
+        AnchorPoint            = Vector2.new(0, 1),
+        Position               = UDim2.new(1, 0, 1, 0),
         Name                   = "NotificationFrame",
     }, layout)
 
@@ -805,12 +810,14 @@ function H4Library:CreateWindow(cfg)
     Custom:Create("UICorner", { CornerRadius = DPI:U(0, 5) }, SearchBarFrame)
     Custom:Create("UIStroke", { Color = Theme.AccentGreen, Thickness = 1, Transparency = 0.7 }, SearchBarFrame)
 
-    local SearchIcon = Custom:Create("ImageLabel", {
-        Image                  = "rbxassetid://76838959085485",
-        ImageColor3            = Theme.AccentGreen,
+    local SearchIcon = Custom:Create("TextLabel", {
+        Font                   = Enum.Font.GothamBold,
+        Text                   = "🔍",
+        TextScaled             = true,
         BackgroundTransparency = 1,
         BorderSizePixel        = 0,
-        Position               = DPI:U2(0, 4, 0.5, -DPI:S(7)),
+        AnchorPoint            = Vector2.new(0, 0.5),
+        Position               = DPI:U2(0, 3, 0.5, 0),
         Size                   = DPI:U2(0, 14, 0, 14),
     }, SearchBarFrame)
 
@@ -1677,21 +1684,24 @@ function H4Library:CreateWindow(cfg)
                     Size                   = UDim2.new(1, 0, 1, 0),
                     Name                   = "ButtonButton",
                 }, Btn)
-                local iconFrame = Custom:Create("Frame", {
-                    AnchorPoint          = Vector2.new(1, 0.5),
-                    BackgroundTransparency = 0.999,
-                    BorderSizePixel      = 0,
-                    Position             = UDim2.new(1, -DPI:S(15), 0.5, 0),
-                    Size                 = DPI:U2(0, 25, 0, 25),
-                }, Btn)
-                Custom:Create("ImageLabel", {
-                    Image                  = BIcon,
-                    AnchorPoint            = Vector2.new(0.5, 0.5),
-                    BackgroundTransparency = 0.999,
-                    BorderSizePixel        = 0,
-                    Position               = UDim2.new(0.5, 0, 0.5, 0),
-                    Size                   = UDim2.new(1, 0, 1, 0),
-                }, iconFrame)
+                if BIcon and BIcon ~= "" then
+                    local iconFrame = Custom:Create("Frame", {
+                        AnchorPoint          = Vector2.new(1, 0.5),
+                        BackgroundTransparency = 0.999,
+                        BorderSizePixel      = 0,
+                        Position             = UDim2.new(1, -DPI:S(10), 0.5, 0),
+                        Size                 = DPI:U2(0, 22, 0, 22),
+                    }, Btn)
+                    Custom:Create("ImageLabel", {
+                        Image                  = BIcon,
+                        ImageColor3            = Theme.AccentGreen,
+                        AnchorPoint            = Vector2.new(0.5, 0.5),
+                        BackgroundTransparency = 0.999,
+                        BorderSizePixel        = 0,
+                        Position               = UDim2.new(0.5, 0, 0.5, 0),
+                        Size                   = UDim2.new(1, 0, 1, 0),
+                    }, iconFrame)
+                end
                 bBtnReal.Activated:Connect(function()
                     CircleClick(bBtnReal, Player:GetMouse().X, Player:GetMouse().Y)
                     BCallback()
