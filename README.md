@@ -451,5 +451,5 @@ Credit appreciated but not required.
 ---
 
 <div align="center">
-  <b>EmeraldUI</b> · Made with 💚 by Dino · Doz Y / Violence District
+  <b>EmeraldUI</b> · Made with 💚 by Dino · Doz Y
 </div>
