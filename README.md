@@ -2,7 +2,7 @@
 
 **Lightweight, adaptive Roblox UI Library untuk semua perangkat.**
 
-> by **Dino** · Doz Y / Violence District
+> by **Dino** · Doz Y
 
 ---
 
