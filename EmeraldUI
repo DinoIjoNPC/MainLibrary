@@ -1,7 +1,7 @@
 --[[
     H4dinooo UI Library
     Based on Speed Hub X V5.0
-    Modified by: Dino / Doz Y / Violence District
+    Modified by: Dino / Doz Y
     
     Features:
     - Adaptive DPI Scaling (HP, Tablet, PC konsisten)
@@ -135,44 +135,101 @@ do
 end
 
 -- ============================================================
---  THEME : HIJAU - PUTIH GRADIENT
+--  THEME SYSTEM
 -- ============================================================
+local ThemePresets = {
+    Green = {
+        Accent      = Color3.fromRGB(0, 200, 100),
+        AccentMid   = Color3.fromRGB(100, 220, 160),
+        AccentWhite = Color3.fromRGB(255, 255, 255),
+    },
+    Blue = {
+        Accent      = Color3.fromRGB(0, 140, 255),
+        AccentMid   = Color3.fromRGB(80, 180, 255),
+        AccentWhite = Color3.fromRGB(200, 230, 255),
+    },
+    Purple = {
+        Accent      = Color3.fromRGB(160, 60, 255),
+        AccentMid   = Color3.fromRGB(200, 130, 255),
+        AccentWhite = Color3.fromRGB(230, 200, 255),
+    },
+    Red = {
+        Accent      = Color3.fromRGB(255, 50, 80),
+        AccentMid   = Color3.fromRGB(255, 130, 150),
+        AccentWhite = Color3.fromRGB(255, 200, 210),
+    },
+    Gold = {
+        Accent      = Color3.fromRGB(255, 190, 0),
+        AccentMid   = Color3.fromRGB(255, 220, 80),
+        AccentWhite = Color3.fromRGB(255, 245, 200),
+    },
+    Cyan = {
+        Accent      = Color3.fromRGB(0, 220, 220),
+        AccentMid   = Color3.fromRGB(80, 235, 235),
+        AccentWhite = Color3.fromRGB(200, 250, 255),
+    },
+    Pink = {
+        Accent      = Color3.fromRGB(255, 80, 180),
+        AccentMid   = Color3.fromRGB(255, 160, 220),
+        AccentWhite = Color3.fromRGB(255, 220, 245),
+    },
+    Orange = {
+        Accent      = Color3.fromRGB(255, 130, 0),
+        AccentMid   = Color3.fromRGB(255, 190, 80),
+        AccentWhite = Color3.fromRGB(255, 235, 200),
+    },
+}
+
+local ActivePreset = ThemePresets.Green
 local Theme = {}
 
--- Warna utama (dipakai untuk accent, active state, highlight)
-Theme.AccentGreen    = Color3.fromRGB(0, 200, 100)
-Theme.AccentWhite    = Color3.fromRGB(255, 255, 255)
-
--- Background
-Theme.BG             = Color3.fromRGB(13, 13, 13)      -- hampir hitam
+Theme.AccentGreen    = ActivePreset.Accent
+Theme.AccentWhite    = ActivePreset.AccentWhite
+Theme.BG             = Color3.fromRGB(13, 13, 13)
 Theme.BGSecondary    = Color3.fromRGB(20, 20, 20)
 Theme.BGItem         = Color3.fromRGB(30, 30, 30)
-
--- Text
 Theme.TextPrimary    = Color3.fromRGB(255, 255, 255)
 Theme.TextSecondary  = Color3.fromRGB(180, 180, 180)
 Theme.TextDim        = Color3.fromRGB(120, 120, 120)
-
--- Stroke / Border
 Theme.Stroke         = Color3.fromRGB(50, 50, 50)
 Theme.StrokeActive   = Theme.AccentGreen
 
--- Helper: gradient hijau ke putih (untuk UIGradient)
-function Theme.GreenWhiteGradient()
+function Theme.AccentGradient()
     return ColorSequence.new({
-        ColorSequenceKeypoint.new(0,   Theme.AccentGreen),
-        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(100, 220, 160)),
-        ColorSequenceKeypoint.new(1,   Theme.AccentWhite),
+        ColorSequenceKeypoint.new(0,   ActivePreset.Accent),
+        ColorSequenceKeypoint.new(0.6, ActivePreset.AccentMid),
+        ColorSequenceKeypoint.new(1,   ActivePreset.AccentWhite),
     })
 end
 
--- Helper: gradient hijau ke hitam (untuk divider/line)
+function Theme.GreenWhiteGradient()
+    return Theme.AccentGradient()
+end
+
 function Theme.GreenBlackGradient()
     return ColorSequence.new({
         ColorSequenceKeypoint.new(0,   Color3.fromRGB(13, 13, 13)),
-        ColorSequenceKeypoint.new(0.5, Theme.AccentGreen),
+        ColorSequenceKeypoint.new(0.5, ActivePreset.Accent),
         ColorSequenceKeypoint.new(1,   Color3.fromRGB(13, 13, 13)),
     })
+end
+
+-- Fungsi apply theme: ganti ActivePreset dan update warna
+local ThemeListeners = {}
+local function ApplyTheme(presetName)
+    local preset = ThemePresets[presetName]
+    if not preset then return end
+    ActivePreset         = preset
+    Theme.AccentGreen    = preset.Accent
+    Theme.AccentWhite    = preset.AccentWhite
+    Theme.StrokeActive   = preset.Accent
+    for _, fn in pairs(ThemeListeners) do
+        pcall(fn, preset)
+    end
+end
+
+local function OnThemeChanged(fn)
+    table.insert(ThemeListeners, fn)
 end
 
 -- ============================================================
@@ -470,21 +527,25 @@ end
 --  CREATE WINDOW
 -- ============================================================
 function H4Library:CreateWindow(cfg)
-    -- Window size adaptive: base 550x315, scale dengan DPI
     local baseW  = cfg[4] and cfg[4].X.Offset or 550
     local baseH  = cfg[4] and cfg[4].Y.Offset or 315
     local TabW   = cfg[3] or cfg["Tab Width"] or 120
 
-    local Title       = cfg[1] or cfg.Title or "H4dinooo"
+    local Title       = cfg[1] or cfg.Title or "EmeraldUI"
     local Description = cfg[2] or cfg.Description or ""
+    local CfgTheme    = cfg.Theme or "Green"
+    local CfgThumb    = cfg.Thumbnail or nil
 
-    local scaledW = DPI:S(baseW)
-    local scaledH = DPI:S(baseH)
+    -- Apply theme dari config
+    ApplyTheme(CfgTheme)
+
+    local scaledW    = DPI:S(baseW)
+    local scaledH    = DPI:S(baseH)
     local scaledTabW = DPI:S(TabW)
-
-    local SizeUi = UDim2.fromOffset(scaledW, scaledH)
+    local SizeUi     = UDim2.fromOffset(scaledW, scaledH)
 
     local Funcs = {}
+    local TabThumbnails = {}
 
     -- Root ScreenGui
     local rootGui = Custom:Create("ScreenGui", {
@@ -622,12 +683,50 @@ function H4Library:CreateWindow(cfg)
         Name                 = "DecideFrame",
     }, Main)
 
+    -- ── SEARCH BAR GLOBAL (di atas sidebar) ─────────────────
+    local SearchBarFrame = Custom:Create("Frame", {
+        BackgroundColor3     = Theme.BGSecondary,
+        BackgroundTransparency = 0.3,
+        BorderSizePixel      = 0,
+        Position             = DPI:U2(0, 9, 0, 50),
+        Size                 = UDim2.new(0, scaledTabW, 0, DPI:S(26)),
+        Name                 = "SearchBarFrame",
+        ClipsDescendants     = true,
+    }, Main)
+    Custom:Create("UICorner", { CornerRadius = DPI:U(0, 5) }, SearchBarFrame)
+    Custom:Create("UIStroke", { Color = Theme.AccentGreen, Thickness = 1, Transparency = 0.7 }, SearchBarFrame)
+
+    local SearchIcon = Custom:Create("ImageLabel", {
+        Image                  = "rbxassetid://3926305904",
+        ImageColor3            = Theme.AccentGreen,
+        BackgroundTransparency = 1,
+        BorderSizePixel        = 0,
+        Position               = DPI:U2(0, 4, 0.5, -DPI:S(7)),
+        Size                   = DPI:U2(0, 14, 0, 14),
+    }, SearchBarFrame)
+
+    local SearchBox = Custom:Create("TextBox", {
+        Font                 = Enum.Font.GothamBold,
+        PlaceholderText      = "Search...",
+        PlaceholderColor3    = Theme.TextDim,
+        Text                 = "",
+        TextColor3           = Theme.TextPrimary,
+        TextSize             = DPI:F(11),
+        TextXAlignment       = Enum.TextXAlignment.Left,
+        BackgroundTransparency = 1,
+        BorderSizePixel      = 0,
+        Position             = DPI:U2(0, 22, 0, 0),
+        Size                 = DPI:U2(1, -26, 1, 0),
+        ClearTextOnFocus     = false,
+        Name                 = "SearchBox",
+    }, SearchBarFrame)
+
     -- ── TAB SIDEBAR ──────────────────────────────────────────
     local LayersTab = Custom:Create("Frame", {
         BackgroundTransparency = 0.999,
         BorderSizePixel        = 0,
-        Position               = DPI:U2(0, 9, 0, 50),
-        Size                   = UDim2.new(0, scaledTabW, 1, -DPI:S(59)),
+        Position               = DPI:U2(0, 9, 0, 50 + DPI:S(30)),
+        Size                   = UDim2.new(0, scaledTabW, 1, -DPI:S(59) - DPI:S(30)),
         Name                   = "LayersTab",
     }, Main)
     Custom:Create("UICorner", { CornerRadius = DPI:U(0, 2) }, LayersTab)
@@ -713,6 +812,83 @@ function H4Library:CreateWindow(cfg)
     end
     ScrollTab.ChildAdded:Connect(UpdateScrollTabSize)
     ScrollTab.ChildRemoved:Connect(UpdateScrollTabSize)
+
+    -- ── SEARCH LOGIC: filter tab buttons ──────────────────────
+    SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+        local q = string.lower(SearchBox.Text)
+        for _, tabFrame in pairs(ScrollTab:GetChildren()) do
+            if tabFrame.Name == "Tab" then
+                local nameLbl = tabFrame:FindFirstChild("TabName")
+                if nameLbl then
+                    tabFrame.Visible = (q == "") or (string.find(string.lower(nameLbl.Text), q, 1, true) ~= nil)
+                end
+            end
+        end
+    end)
+
+    -- ── THUMBNAIL AREA (di bawah NameTab, atas content) ───────
+    local ThumbFrame = Custom:Create("Frame", {
+        BackgroundTransparency = 1,
+        BorderSizePixel        = 0,
+        Size                   = DPI:U2(1, 0, 0, 0),
+        Position               = DPI:U2(0, 0, 0, 30),
+        Name                   = "ThumbFrame",
+        ClipsDescendants       = true,
+    }, Layers)
+
+    local ThumbImage = Custom:Create("ImageLabel", {
+        BackgroundColor3       = Theme.BGSecondary,
+        BackgroundTransparency = 0.5,
+        BorderSizePixel        = 0,
+        Size                   = UDim2.fromScale(1, 1),
+        ScaleType              = Enum.ScaleType.Crop,
+        Image                  = "",
+        Name                   = "ThumbImage",
+    }, ThumbFrame)
+    Custom:Create("UICorner", { CornerRadius = DPI:U(0, 6) }, ThumbImage)
+
+    -- Gradient overlay bawah thumbnail agar text tidak tertutup
+    local ThumbGrad = Custom:Create("Frame", {
+        BackgroundColor3       = Theme.BG,
+        BackgroundTransparency = 0,
+        BorderSizePixel        = 0,
+        AnchorPoint            = Vector2.new(0, 1),
+        Position               = UDim2.fromScale(0, 1),
+        Size                   = DPI:U2(1, 0, 0, 30),
+        Name                   = "ThumbGrad",
+    }, ThumbImage)
+    Custom:Create("UIGradient", {
+        Color    = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(13,13,13)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(13,13,13)),
+        }),
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0),
+            NumberSequenceKeypoint.new(1, 1),
+        }),
+        Rotation = 90,
+    }, ThumbGrad)
+
+    local function SetThumbForTab(thumbUrl)
+        if thumbUrl and thumbUrl ~= "" then
+            ThumbFrame.Size    = DPI:U2(1, 0, 0, DPI:S(70))
+            ThumbImage.Image   = thumbUrl
+            -- Adjust LayersReal agar tidak overlap thumbnail
+            LayersReal.Size    = DPI:U2(1, 0, 1, -(DPI:S(33) + DPI:S(70)))
+            LayersReal.Position = UDim2.new(0, 0, 0, DPI:S(33) + DPI:S(70))
+            ThumbFrame.Visible = true
+        else
+            ThumbFrame.Size    = DPI:U2(1, 0, 0, 0)
+            ThumbFrame.Visible = false
+            LayersReal.Size    = DPI:U2(1, 0, 1, -33)
+            LayersReal.Position = UDim2.new(0, 0, 1, 0)
+        end
+    end
+
+    -- Load default thumbnail jika ada di config
+    if CfgThumb then
+        SetThumbForTab(CfgThumb)
+    end
 
     -- ── DROPDOWN BLUR OVERLAY ────────────────────────────────
     local MoreBlur = Custom:Create("Frame", {
@@ -939,6 +1115,10 @@ close this script?"
     function Tabs:CreateTab(cfg2)
         local _Name  = cfg2[1] or cfg2.Name or ""
         local _Icon  = cfg2[2] or cfg2.Icon or ""
+        local _Thumb = cfg2[3] or cfg2.Thumbnail or nil
+
+        -- Simpan thumbnail per tab index
+        TabThumbnails[CountTab] = _Thumb or ""
 
         -- Content scroll untuk tab ini
         local ScrolLayers = Custom:Create("ScrollingFrame", {
@@ -1045,6 +1225,9 @@ close this script?"
                 LayersPageLayout:JumpToIndex(Tab.LayoutOrder)
                 task.wait(0.05)
                 NameTab.Text = _Name
+                -- Update thumbnail per tab
+                local thumbUrl = TabThumbnails[Tab.LayoutOrder] or CfgThumb or ""
+                SetThumbForTab(thumbUrl)
                 TweenService:Create(FrameChoose, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut),
                     { Size = DPI:U2(0, 2, 0, 20) }):Play()
                 task.wait(0.2)
@@ -2076,6 +2259,49 @@ close this script?"
 
         CountTab += 1
         return Sections
+    end
+
+    -- ── SET THEME (dipanggil dari script luar) ────────────────
+    function Tabs:SetTheme(presetName)
+        ApplyTheme(presetName)
+        -- Update semua UIGradient yang terdaftar (title, active bar, dll)
+        for _, desc in pairs(Main:GetDescendants()) do
+            if desc:IsA("UIGradient") then
+                pcall(function()
+                    desc.Color = Theme.AccentGradient()
+                end)
+            end
+            if desc:IsA("UIStroke") then
+                pcall(function()
+                    if desc.Color ~= Theme.BG and desc.Color ~= Theme.Stroke then
+                        desc.Color = Theme.AccentGreen
+                    end
+                end)
+            end
+            if desc:IsA("Frame") or desc:IsA("ImageLabel") then
+                pcall(function()
+                    local c = desc.BackgroundColor3
+                    -- hanya update yang warnanya accent lama
+                    if c == Theme.AccentGreen then
+                        desc.BackgroundColor3 = ActivePreset.Accent
+                    end
+                end)
+            end
+        end
+        -- Update accent color di theme global
+        Theme.AccentGreen  = ActivePreset.Accent
+        Theme.AccentWhite  = ActivePreset.AccentWhite
+        Theme.StrokeActive = ActivePreset.Accent
+    end
+
+    -- ── SET THUMBNAIL GLOBAL (dari script luar) ───────────────
+    function Tabs:SetThumbnail(url)
+        SetThumbForTab(url or "")
+    end
+
+    -- ── SET THUMBNAIL PER TAB (dari script luar) ──────────────
+    function Tabs:SetTabThumbnail(tabIndex, url)
+        TabThumbnails[tabIndex] = url or ""
     end
 
     return Tabs
