@@ -1,7 +1,7 @@
 --[[
     H4dinooo UI Library
     Based on Speed Hub X V5.0
-    Modified by: Dino / Doz Y
+    Modified by: Dino / Doz Y / Violence District
     
     Features:
     - Adaptive DPI Scaling (HP, Tablet, PC konsisten)
@@ -247,10 +247,13 @@ function Custom:Create(name, props, parent)
 end
 
 function Custom:EnabledAFK()
+    if not VirtualUser then return end
     Player.Idled:Connect(function()
-        VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-        task.wait(1)
-        VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        pcall(function()
+            VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            task.wait(1)
+            VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        end)
     end)
 end
 
@@ -298,10 +301,7 @@ end
 local function MakeOpenCloseButton()
     local sg = Custom:Create("ScreenGui", {
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-    }, RunService:IsStudio() and Player.PlayerGui
-        or (gethui and gethui())
-        or (cloneref and cloneref(game:GetService("CoreGui")))
-        or game:GetService("CoreGui"))
+    }, GetGuiParent())
 
     local btn = Custom:Create("ImageButton", {
         BackgroundColor3     = Color3.fromRGB(0,0,0),
@@ -309,7 +309,7 @@ local function MakeOpenCloseButton()
         BorderColor3         = Theme.AccentGreen,
         Position             = DPI:U2(0.1, 0, 0.07, 0),
         Size                 = DPI:U2(0, 59, 0, 49),
-        Image                = "rbxassetid://136890595976124",
+        Image                = "rbxassetid://136893287430224",
         Visible              = false,
     }, sg)
 
@@ -375,6 +375,26 @@ local H4Library = {}
 local Notification = {}
 H4Library.Unloaded = false
 
+-- Safe GUI parent getter
+local function GetGuiParent()
+    if RunService:IsStudio() then
+        return game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    end
+    local ok, result = pcall(function()
+        if gethui then return gethui() end
+    end)
+    if ok and result then return result end
+    local ok2, result2 = pcall(function()
+        if cloneref then return cloneref(game:GetService("CoreGui")) end
+    end)
+    if ok2 and result2 then return result2 end
+    local ok3, result3 = pcall(function()
+        return game:GetService("CoreGui")
+    end)
+    if ok3 and result3 then return result3 end
+    return game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+end
+
 -- ============================================================
 --  NOTIFICATION SYSTEM
 -- ============================================================
@@ -387,10 +407,7 @@ function H4Library:SetNotification(cfg)
 
     local notifGui = Custom:Create("ScreenGui", {
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-    }, RunService:IsStudio() and Player.PlayerGui
-        or (gethui and gethui())
-        or (cloneref and cloneref(game:GetService("CoreGui")))
-        or game:GetService("CoreGui"))
+    }, GetGuiParent())
 
     local layout = Custom:Create("Frame", {
         AnchorPoint          = Vector2.new(1,1),
@@ -550,10 +567,7 @@ function H4Library:CreateWindow(cfg)
     -- Root ScreenGui
     local rootGui = Custom:Create("ScreenGui", {
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-    }, RunService:IsStudio() and Player.PlayerGui
-        or (gethui and gethui())
-        or (cloneref and cloneref(game:GetService("CoreGui")))
-        or game:GetService("CoreGui"))
+    }, GetGuiParent())
 
     -- Drop shadow holder
     local shadowHolder = Custom:Create("Frame", {
@@ -659,16 +673,14 @@ function H4Library:CreateWindow(cfg)
     }, Top)
 
     -- Minimize button
-    local MinBtn = Custom:Create("TextButton", {
-        Font                   = Enum.Font.SourceSans,
-        Text                   = "−",
-        TextColor3             = Theme.TextPrimary,
-        TextSize               = DPI:F(18),
-        AnchorPoint            = Vector2.new(1, 0.5),
+    local MinBtn = Custom:Create("ImageButton", {
+        Image                  = "rbxassetid://136893287430224",
+        ImageColor3            = Theme.TextPrimary,
         BackgroundTransparency = 0.999,
         BorderSizePixel        = 0,
+        AnchorPoint            = Vector2.new(1, 0.5),
         Position               = UDim2.new(1, -DPI:S(42), 0.5, 0),
-        Size                   = DPI:U2(0, 25, 0, 25),
+        Size                   = DPI:U2(0, 22, 0, 22),
         Name                   = "Min",
     }, Top)
 
@@ -973,10 +985,7 @@ function H4Library:CreateWindow(cfg)
         -- Confirm dialog
         local confirmGui = Instance.new("ScreenGui")
         confirmGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-        confirmGui.Parent = RunService:IsStudio() and Player.PlayerGui
-            or (gethui and gethui())
-            or (cloneref and cloneref(game:GetService("CoreGui")))
-            or game:GetService("CoreGui")
+        confirmGui.Parent = GetGuiParent()
 
         -- Overlay gelap
         local overlay = Instance.new("Frame")
